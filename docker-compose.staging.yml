@@ -1,0 +1,47 @@
+version: '3.4'
+services:
+
+  webserver:
+    labels:
+      - "traefik.enable=1"
+      - "traefik.http.routers.${PROJECT_NAME}-web.rule=Host(`${BASE_DOMAIN}`)"
+      - "traefik.http.routers.${PROJECT_NAME}-web.entrypoints=websecure"
+      - "traefik.http.routers.${PROJECT_NAME}-web.tls=true"
+      - "traefik.http.routers.${PROJECT_NAME}-web.tls.certresolver=letsencrypt"
+    networks:
+      default:
+      webproxy:
+
+  phpmyadmin:
+    labels:
+      - "traefik.enable=1"
+      - "traefik.http.routers.${PROJECT_NAME}-pma.rule=Host(`phpmyadmin.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.${PROJECT_NAME}-pma.entrypoints=websecure"
+      - "traefik.http.routers.${PROJECT_NAME}-pma.tls=true"
+      - "traefik.http.routers.${PROJECT_NAME}-pma.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.${PROJECT_NAME}-pma.middlewares=oh-internal-ip"
+    networks:
+      default:
+      webproxy:
+
+
+  mail:
+    container_name: ${PROJECT_NAME}_mail
+    image: mailhog/mailhog:latest
+    labels:
+      - "traefik.enable=1"
+      - "traefik.http.routers.${PROJECT_NAME}-mail.rule=Host(`mail.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.${PROJECT_NAME}-mail.entrypoints=websecure"
+      - "traefik.http.routers.${PROJECT_NAME}-mail.tls=true"
+      - "traefik.http.routers.${PROJECT_NAME}-mail.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.${PROJECT_NAME}-mail.middlewares=oh-internal-ip"
+      - "traefik.http.services.${PROJECT_NAME}-mail.loadbalancer.server.port=8025"
+    networks:
+      webproxy:
+      default:
+
+networks:
+  webproxy:
+    external:
+      name: ${WEBPROXY_NETWORK:-webproxy}
+

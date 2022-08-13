@@ -1,0 +1,37 @@
+version: '3.4'
+services:
+
+  webserver:
+    labels:
+      - "traefik.enable=1"
+      - "traefik.http.routers.${PROJECT_NAME}-web-http.rule=Host(`${BASE_DOMAIN}`)"
+      - "traefik.http.routers.${PROJECT_NAME}-web-http.entrypoints=web"
+      - "traefik.http.routers.${PROJECT_NAME}-web-http.middlewares=redirect-to-https"
+      - "traefik.http.routers.${PROJECT_NAME}-web.rule=Host(`${BASE_DOMAIN}`)"
+      - "traefik.http.routers.${PROJECT_NAME}-web.entrypoints=websecure"
+      - "traefik.http.routers.${PROJECT_NAME}-web.tls=true"
+      - "traefik.http.routers.${PROJECT_NAME}-web.tls.certresolver=letsencrypt"
+    networks:
+      default:
+      webproxy:
+
+  phpmyadmin:
+    labels:
+      - "traefik.enable=1"
+      - "traefik.http.routers.${PROJECT_NAME}-pma-http.rule=Host(`phpmyadmin.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.${PROJECT_NAME}-pma-http.entrypoints=web"
+      - "traefik.http.routers.${PROJECT_NAME}-pma-http.middlewares=redirect-to-https"
+      - "traefik.http.routers.${PROJECT_NAME}-pma.rule=Host(`phpmyadmin.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.${PROJECT_NAME}-pma.entrypoints=websecure"
+      - "traefik.http.routers.${PROJECT_NAME}-pma.tls=true"
+      - "traefik.http.routers.${PROJECT_NAME}-pma.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.${PROJECT_NAME}-pma.middlewares=oh-internal-ip"
+    networks:
+      default:
+      webproxy:
+
+networks:
+  webproxy:
+    external:
+      name: ${WEBPROXY_NETWORK:-webproxy}
+

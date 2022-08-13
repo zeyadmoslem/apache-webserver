@@ -1,0 +1,69 @@
+version: '3.4'
+services:
+  db:
+    image: mysql:5.7
+    container_name: ${PROJECT_NAME:-project}_db
+    expose:
+      - 3306
+    volumes:
+      - ./conf/mysql/my.cnf:/etc/mysql/conf.d/mysql.cnf
+      - ./volumes/mysql:/var/lib/mysql
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-typo3_11_test}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootPassword}
+      MYSQL_USER: ${MYSQL_USER:-user}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-password}
+    networks:
+      default:
+
+  webserver:
+    container_name: ${PROJECT_NAME:-project}_web
+    build:
+      context: ./webserver
+      dockerfile: Dockerfile
+    expose:
+      - 80
+      - 443
+
+    depends_on:
+      - db
+    volumes:
+      - ${WEBSERVER_PROJECT_PATH:-../typo3-project/}:/var/www/html
+      - ./conf/webserver/httpd.conf:/etc/apache2/conf-enabled/httpd.conf
+      - ./conf/webserver/php.ini:/usr/local/etc/php/php.ini
+      - ./logs/apache:/var/log/apache
+      - ~/.ssh/id_rsa:/tmp/.ssh/id_rsa:ro
+      - ~/.ssh/known_hosts:/tmp/.ssh/known_hosts:ro
+    environment:
+      BASE_DOMAIN: ${BASE_DOMAIN}
+      VIRTUAL_HOST: ${BASE_DOMAIN}, www.${BASE_DOMAIN}
+      APACHE_VIRTUAL_HOST: www.${BASE_DOMAIN}
+      APACHE_LOG_DIR: ${APACHE_LOG_DIR:-/var/log/apache2}
+      DOCUMENT_ROOT: ${DOCUMENT_ROOT:-}
+      APPLICATION_ENVIRONMENT: ${ENVIRONMENT}
+      TYPO3_CONTEXT: ${ENVIRONMENT}
+    networks:
+      default:
+      webproxy:
+
+  phpmyadmin:
+    container_name: ${PROJECT_NAME}_pma
+    image: phpmyadmin:5.1-apache
+    depends_on:
+      - db
+    links:
+      - db:db
+    environment:
+      PMA_HOST: db
+      UPLOAD_LIMIT: "50M"
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      VIRTUAL_HOST: phpmyadmin.${BASE_DOMAIN}
+    networks:
+      default:
+      webproxy:
+
+networks:
+  webproxy:
+    external:
+      name: ${WEBPROXY_NETWORK:-webproxy}
+
