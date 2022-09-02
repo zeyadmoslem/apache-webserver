@@ -3,10 +3,10 @@
 # # check file rights
 # if [ -d /var/www/html ]
 # then
-#   chown -R www-data:www-data /var/www/html
+#   chown -R 1000:www-data /var/www/html
 # fi;
 
-# chown www-data:www-data /var/www
+# chown 1000:www-data /var/www
 
 # mkdir -p /var/www/.composer
 # chown -R www-data:www-data /var/www/.composer
