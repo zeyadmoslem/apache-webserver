@@ -5,8 +5,8 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
-COPY --chown=1000:www-data . /var/www/html
-#COPY ./docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+#COPY --chown=1000:www-data . /var/www/html
+COPY ./docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 # Update apt-get and install some basic php extensions
